@@ -209,16 +209,13 @@ func (i *IdentityStore) pathGroupIDRead(req *logical.Request, d *framework.Field
 	if err != nil {
 		return nil, err
 	}
-	if group == nil {
-		return nil, nil
-	}
 
 	return i.handleGroupReadCommon(group)
 }
 
 func (i *IdentityStore) handleGroupReadCommon(group *identity.Group) (*logical.Response, error) {
 	if group == nil {
-		return nil, fmt.Errorf("nil group")
+		return nil, nil
 	}
 
 	respData := map[string]interface{}{}

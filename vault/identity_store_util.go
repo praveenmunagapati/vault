@@ -229,7 +229,7 @@ func (i *IdentityStore) LockForEntityID(entityID string) *locksutil.LockEntry {
 
 // upsertEntityInTxn either creates or updates an existing entity. The
 // operations will be updated in both MemDB and storage. If 'persist' is set to
-// false, then storage will not be updated. When a alias is transferred from
+// false, then storage will not be updated. When an alias is transferred from
 // one entity to another, both the source and destination entities should get
 // updated, in which case, callers should send in both entity and
 // previousEntity.
@@ -318,7 +318,7 @@ func (i *IdentityStore) upsertEntityInTxn(txn *memdb.Txn, entity *identity.Entit
 
 // upsertEntity either creates or updates an existing entity. The operations
 // will be updated in both MemDB and storage. If 'persist' is set to false,
-// then storage will not be updated. When a alias is transferred from one
+// then storage will not be updated. When an alias is transferred from one
 // entity to another, both the source and destination entities should get
 // updated, in which case, callers should send in both entity and
 // previousEntity.
@@ -578,18 +578,18 @@ func (i *IdentityStore) memDBUpsertAlias(alias *identity.Alias) error {
 	return nil
 }
 
-func (i *IdentityStore) memDBAliasByEntityIDInTxn(txn *memdb.Txn, entityID string, clone bool) (*identity.Alias, error) {
-	if entityID == "" {
-		return nil, fmt.Errorf("missing entity id")
+func (i *IdentityStore) memDBAliasByParentIDInTxn(txn *memdb.Txn, parentID string, clone bool) (*identity.Alias, error) {
+	if parentID == "" {
+		return nil, fmt.Errorf("missing parent ID")
 	}
 
 	if txn == nil {
 		return nil, fmt.Errorf("txn is nil")
 	}
 
-	aliasRaw, err := txn.First("aliases", "entity_id", entityID)
+	aliasRaw, err := txn.First("aliases", "parent_id", parentID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch alias from memdb using entity id: %v", err)
+		return nil, fmt.Errorf("failed to fetch alias from memdb using parent ID: %v", err)
 	}
 
 	if aliasRaw == nil {
@@ -608,14 +608,14 @@ func (i *IdentityStore) memDBAliasByEntityIDInTxn(txn *memdb.Txn, entityID strin
 	return alias, nil
 }
 
-func (i *IdentityStore) memDBAliasByEntityID(entityID string, clone bool) (*identity.Alias, error) {
-	if entityID == "" {
-		return nil, fmt.Errorf("missing entity id")
+func (i *IdentityStore) memDBAliasByParentID(parentID string, clone bool) (*identity.Alias, error) {
+	if parentID == "" {
+		return nil, fmt.Errorf("missing parent ID")
 	}
 
 	txn := i.db.Txn(false)
 
-	return i.memDBAliasByEntityIDInTxn(txn, entityID, clone)
+	return i.memDBAliasByParentIDInTxn(txn, parentID, clone)
 }
 
 func (i *IdentityStore) memDBAliasByIDInTxn(txn *memdb.Txn, aliasID string, clone bool) (*identity.Alias, error) {
@@ -2119,4 +2119,84 @@ func (i *IdentityStore) memDBGroupsByBucketEntryKeyHashInTxn(txn *memdb.Txn, has
 	}
 
 	return groups, nil
+}
+
+func (i *IdentityStore) memDBGroupAliasByIDInTxn(txn *memdb.Txn, aliasID string, clone bool) (*identity.Alias, error) {
+	if aliasID == "" {
+		return nil, fmt.Errorf("missing group alias ID")
+	}
+
+	if txn == nil {
+		return nil, fmt.Errorf("txn is nil")
+	}
+
+	aliasRaw, err := txn.First("group_aliases", "id", aliasID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch group alias from memdb using ID: %v", err)
+	}
+
+	if aliasRaw == nil {
+		return nil, nil
+	}
+
+	alias, ok := aliasRaw.(*identity.Alias)
+	if !ok {
+		return nil, fmt.Errorf("failed to declare the type of fetched group alias")
+	}
+
+	if clone {
+		return alias.Clone()
+	}
+
+	return alias, nil
+}
+
+func (i *IdentityStore) memDBGroupAliasByID(aliasID string, clone bool) (*identity.Alias, error) {
+	if aliasID == "" {
+		return nil, fmt.Errorf("missing group alias ID")
+	}
+
+	txn := i.db.Txn(false)
+
+	return i.memDBGroupAliasByIDInTxn(txn, aliasID, clone)
+}
+
+func (i *IdentityStore) memDBGroupAliasByParentIDInTxn(txn *memdb.Txn, parentID string, clone bool) (*identity.Alias, error) {
+	if parentID == "" {
+		return nil, fmt.Errorf("missing parent ID")
+	}
+
+	if txn == nil {
+		return nil, fmt.Errorf("txn is nil")
+	}
+
+	aliasRaw, err := txn.First("group_aliases", "parent_id", parentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch group alias from memdb using parent ID: %v", err)
+	}
+
+	if aliasRaw == nil {
+		return nil, nil
+	}
+
+	alias, ok := aliasRaw.(*identity.Alias)
+	if !ok {
+		return nil, fmt.Errorf("failed to declare the type of fetched group alias")
+	}
+
+	if clone {
+		return alias.Clone()
+	}
+
+	return alias, nil
+}
+
+func (i *IdentityStore) memDBGroupAliasByParentID(parentID string, clone bool) (*identity.Alias, error) {
+	if parentID == "" {
+		return nil, fmt.Errorf("missing parent ID")
+	}
+
+	txn := i.db.Txn(false)
+
+	return i.memDBGroupAliasByParentIDInTxn(txn, parentID, clone)
 }
