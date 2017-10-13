@@ -6,16 +6,23 @@ import (
 	memdb "github.com/hashicorp/go-memdb"
 )
 
+const (
+	entitiesTable      = "entities"
+	entityAliasesTable = "entity_aliases"
+	groupsTable        = "groups"
+	groupAliasesTable  = "group_aliases"
+)
+
 func identityStoreSchema() *memdb.DBSchema {
 	iStoreSchema := &memdb.DBSchema{
 		Tables: make(map[string]*memdb.TableSchema),
 	}
 
 	schemas := []func() *memdb.TableSchema{
-		entityTableSchema,
+		entitiesTableSchema,
 		aliasesTableSchema,
-		groupTableSchema,
-		groupAliasTableSchema,
+		groupsTableSchema,
+		groupAliasesTableSchema,
 	}
 
 	for _, schemaFunc := range schemas {
@@ -29,52 +36,9 @@ func identityStoreSchema() *memdb.DBSchema {
 	return iStoreSchema
 }
 
-func groupAliasTableSchema() *memdb.TableSchema {
-	return &memdb.TableSchema{
-		Name: "group_aliases",
-		Indexes: map[string]*memdb.IndexSchema{
-			"id": &memdb.IndexSchema{
-				Name:   "id",
-				Unique: true,
-				Indexer: &memdb.StringFieldIndex{
-					Field: "ID",
-				},
-			},
-			"group_id": &memdb.IndexSchema{
-				Name:   "group_id",
-				Unique: false,
-				Indexer: &memdb.StringFieldIndex{
-					Field: "GroupID",
-				},
-			},
-			"mount_type": &memdb.IndexSchema{
-				Name:   "mount_type",
-				Unique: false,
-				Indexer: &memdb.StringFieldIndex{
-					Field: "MountType",
-				},
-			},
-			"factors": &memdb.IndexSchema{
-				Name:   "factors",
-				Unique: true,
-				Indexer: &memdb.CompoundIndex{
-					Indexes: []memdb.Indexer{
-						&memdb.StringFieldIndex{
-							Field: "MountAccessor",
-						},
-						&memdb.StringFieldIndex{
-							Field: "Name",
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func aliasesTableSchema() *memdb.TableSchema {
 	return &memdb.TableSchema{
-		Name: "aliases",
+		Name: entityAliasesTable,
 		Indexes: map[string]*memdb.IndexSchema{
 			"id": &memdb.IndexSchema{
 				Name:   "id",
@@ -123,9 +87,9 @@ func aliasesTableSchema() *memdb.TableSchema {
 	}
 }
 
-func entityTableSchema() *memdb.TableSchema {
+func entitiesTableSchema() *memdb.TableSchema {
 	return &memdb.TableSchema{
-		Name: "entities",
+		Name: entitiesTable,
 		Indexes: map[string]*memdb.IndexSchema{
 			"id": &memdb.IndexSchema{
 				Name:   "id",
@@ -169,9 +133,9 @@ func entityTableSchema() *memdb.TableSchema {
 	}
 }
 
-func groupTableSchema() *memdb.TableSchema {
+func groupsTableSchema() *memdb.TableSchema {
 	return &memdb.TableSchema{
-		Name: "groups",
+		Name: groupsTable,
 		Indexes: map[string]*memdb.IndexSchema{
 			"id": {
 				Name:   "id",
@@ -217,6 +181,49 @@ func groupTableSchema() *memdb.TableSchema {
 				AllowMissing: false,
 				Indexer: &memdb.StringFieldIndex{
 					Field: "BucketKeyHash",
+				},
+			},
+		},
+	}
+}
+
+func groupAliasesTableSchema() *memdb.TableSchema {
+	return &memdb.TableSchema{
+		Name: groupAliasesTable,
+		Indexes: map[string]*memdb.IndexSchema{
+			"id": &memdb.IndexSchema{
+				Name:   "id",
+				Unique: true,
+				Indexer: &memdb.StringFieldIndex{
+					Field: "ID",
+				},
+			},
+			"group_id": &memdb.IndexSchema{
+				Name:   "group_id",
+				Unique: false,
+				Indexer: &memdb.StringFieldIndex{
+					Field: "GroupID",
+				},
+			},
+			"mount_type": &memdb.IndexSchema{
+				Name:   "mount_type",
+				Unique: false,
+				Indexer: &memdb.StringFieldIndex{
+					Field: "MountType",
+				},
+			},
+			"factors": &memdb.IndexSchema{
+				Name:   "factors",
+				Unique: true,
+				Indexer: &memdb.CompoundIndex{
+					Indexes: []memdb.Indexer{
+						&memdb.StringFieldIndex{
+							Field: "MountAccessor",
+						},
+						&memdb.StringFieldIndex{
+							Field: "Name",
+						},
+					},
 				},
 			},
 		},

@@ -114,7 +114,7 @@ func (i *IdentityStore) pathLookupGroupAliasUpdate(req *logical.Request, d *fram
 			return logical.ErrorResponse("empty ID"), nil
 		}
 
-		groupAlias, err := i.memDBGroupAliasByID(groupAliasID, false)
+		groupAlias, err := i.memDBAliasByID(groupAliasID, false, true)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +127,7 @@ func (i *IdentityStore) pathLookupGroupAliasUpdate(req *logical.Request, d *fram
 			return logical.ErrorResponse("empty group_id"), nil
 		}
 
-		groupAlias, err := i.memDBGroupAliasByParentID(groupID, false)
+		groupAlias, err := i.memDBAliasByParentID(groupID, false, true)
 		if err != nil {
 			return nil, err
 		}
@@ -144,12 +144,12 @@ func (i *IdentityStore) pathLookupGroupAliasUpdate(req *logical.Request, d *fram
 			return logical.ErrorResponse("empty 'mount_accessor'"), nil
 		}
 
-		groupAlias, err := i.memDBGroupAliasByFactors(mountAccessor, name, false)
+		groupAlias, err := i.memDBAliasByFactors(mountAccessor, groupAliasName, false, true)
 		if err != nil {
 			return nil, err
 		}
 
-		return i.handleGroupAliasReadCommon(groupAlias)
+		return i.handleAliasReadCommon(groupAlias)
 
 	default:
 		return logical.ErrorResponse(fmt.Sprintf("unrecognized type %q", lookupType)), nil

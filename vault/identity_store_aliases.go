@@ -113,7 +113,7 @@ func (i *IdentityStore) pathAliasIDUpdate(req *logical.Request, d *framework.Fie
 		return logical.ErrorResponse("empty alias ID"), nil
 	}
 
-	alias, err := i.memDBAliasByID(aliasID, true)
+	alias, err := i.memDBAliasByID(aliasID, true, false)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (i *IdentityStore) handleAliasUpdateCommon(req *logical.Request, d *framewo
 		}
 	}
 
-	aliasByFactors, err := i.memDBAliasByFactors(mountValidationResp.MountAccessor, aliasName, false)
+	aliasByFactors, err := i.memDBAliasByFactors(mountValidationResp.MountAccessor, aliasName, false, false)
 	if err != nil {
 		return nil, err
 	}
@@ -253,9 +253,9 @@ func (i *IdentityStore) handleAliasUpdateCommon(req *logical.Request, d *framewo
 	alias.MountAccessor = mountValidationResp.MountAccessor
 	alias.MountPath = mountValidationResp.MountPath
 
-	// Set the entity ID in the alias index. This should be done after
+	// Set the parent ID in the alias index. This should be done after
 	// sanitizing entity.
-	alias.EntityID = entity.ID
+	alias.ParentID = entity.ID
 
 	// ID creation and other validations
 	err = i.sanitizeAlias(alias)
@@ -289,7 +289,7 @@ func (i *IdentityStore) pathAliasIDRead(req *logical.Request, d *framework.Field
 		return logical.ErrorResponse("missing alias id"), nil
 	}
 
-	alias, err := i.memDBAliasByID(aliasID, false)
+	alias, err := i.memDBAliasByID(aliasID, false, false)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func (i *IdentityStore) pathAliasIDRead(req *logical.Request, d *framework.Field
 	return i.handleAliasReadCommon(alias)
 }
 
-func (i *IdentityStore) handleAliasReadCommon(alias *Identity.Alias) (*logical.Response, error) {
+func (i *IdentityStore) handleAliasReadCommon(alias *identity.Alias) (*logical.Response, error) {
 	if alias == nil {
 		return nil, nil
 	}
@@ -335,7 +335,7 @@ func (i *IdentityStore) pathAliasIDDelete(req *logical.Request, d *framework.Fie
 // store
 func (i *IdentityStore) pathAliasIDList(req *logical.Request, d *framework.FieldData) (*logical.Response, error) {
 	ws := memdb.NewWatchSet()
-	iter, err := i.memDBAliases(ws)
+	iter, err := i.memDBAliases(ws, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch iterator for aliases in memdb: %v", err)
 	}

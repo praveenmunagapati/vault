@@ -254,7 +254,7 @@ func (i *IdentityStore) EntityByAliasFactors(mountAccessor, aliasName string, cl
 		return nil, fmt.Errorf("missing alias name")
 	}
 
-	alias, err := i.memDBAliasByFactors(mountAccessor, aliasName, false)
+	alias, err := i.memDBAliasByFactors(mountAccessor, aliasName, false, false)
 	if err != nil {
 		return nil, err
 	}
