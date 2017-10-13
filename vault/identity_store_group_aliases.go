@@ -131,6 +131,9 @@ func (i *IdentityStore) handleGroupAliasUpdateCommon(req *logical.Request, d *fr
 		if group == nil {
 			return logical.ErrorResponse("invalid group ID"), nil
 		}
+		if group.Type != groupTypeExternal {
+			return logical.ErrorResponse("alias can't be set on an internal group"), nil
+		}
 	}
 
 	// Get group alias name
@@ -165,6 +168,7 @@ func (i *IdentityStore) handleGroupAliasUpdateCommon(req *logical.Request, d *fr
 		// a new group for it.
 		if group == nil {
 			group = &identity.Group{
+				Type:  groupTypeExternal,
 				Alias: groupAlias,
 			}
 		} else {
@@ -195,9 +199,9 @@ func (i *IdentityStore) handleGroupAliasUpdateCommon(req *logical.Request, d *fr
 		group.Alias = groupAlias
 	}
 
-	groupAlias.Name = groupAliasName
-	groupAlias.MountType = mountValidationResp.MountType
-	groupAlias.MountAccessor = mountValidationResp.MountAccessor
+	group.Alias.Name = groupAliasName
+	group.Alias.MountType = mountValidationResp.MountType
+	group.Alias.MountAccessor = mountValidationResp.MountAccessor
 
 	err = i.sanitizeAndUpsertGroup(group, nil)
 	if err != nil {

@@ -44,6 +44,8 @@ message Group {
 	string bucket_key_hash = 10;
 
 	Alias alias = 11;
+
+	string type = 12;
 }
 
 
